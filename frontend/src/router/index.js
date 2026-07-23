@@ -7,7 +7,7 @@ import ServiceItemsView from '../views/ServiceItemsView.vue'
 import OrdersView from '../views/OrdersView.vue'
 import OrderCreateView from '../views/OrderCreateView.vue'
 import OrderDetailView from '../views/OrderDetailView.vue'
-import PlaceholderView from '../views/PlaceholderView.vue'
+import FinanceView from '../views/FinanceView.vue'
 
 const routes = [
   { path: '/', redirect: '/dashboard' },
@@ -19,6 +19,7 @@ const routes = [
   { path: '/orders', component: OrdersView },
   { path: '/orders/create', component: OrderCreateView },
   { path: '/orders/:id', component: OrderDetailView },
+  { path: '/finance', component: FinanceView },
 ]
 
 const router = createRouter({

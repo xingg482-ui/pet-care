@@ -14,6 +14,7 @@ public class ServiceItem {
     private String name;
     private String category;
     private BigDecimal price;
+    private BigDecimal cost;
     private Integer durationMinutes;
     private String status;
     private String description;
@@ -50,6 +51,14 @@ public class ServiceItem {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public BigDecimal getCost() {
+        return cost;
+    }
+
+    public void setCost(BigDecimal cost) {
+        this.cost = cost;
     }
 
     public Integer getDurationMinutes() {

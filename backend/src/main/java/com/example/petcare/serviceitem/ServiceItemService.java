@@ -82,6 +82,7 @@ public class ServiceItemService {
         item.setName(request.name());
         item.setCategory(request.category());
         item.setPrice(request.price());
+        item.setCost(request.cost());
         item.setDurationMinutes(request.durationMinutes());
         item.setDescription(request.description());
     }

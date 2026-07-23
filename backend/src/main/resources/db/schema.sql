@@ -32,6 +32,7 @@ create table if not exists service_item (
     name text not null,
     category text not null,
     price numeric not null,
+    cost numeric not null default 0,
     duration_minutes integer not null,
     status text not null default 'ENABLED',
     description text,
@@ -47,6 +48,8 @@ create table if not exists service_order (
     appointment_time text not null,
     status text not null default 'PENDING',
     total_amount numeric not null default 0,
+    total_cost numeric not null default 0,
+    total_profit numeric not null default 0,
     remark text,
     created_at text not null default (datetime('now', 'localtime')),
     updated_at text not null default (datetime('now', 'localtime')),
@@ -60,11 +63,21 @@ create table if not exists service_order_item (
     service_item_id integer not null,
     service_name text not null,
     unit_price numeric not null,
+    unit_cost numeric not null default 0,
     quantity integer not null default 1,
     subtotal numeric not null,
+    cost_subtotal numeric not null default 0,
+    profit numeric not null default 0,
     foreign key (order_id) references service_order(id),
     foreign key (service_item_id) references service_item(id)
 );
+
+alter table service_item add column cost numeric not null default 0;
+alter table service_order add column total_cost numeric not null default 0;
+alter table service_order add column total_profit numeric not null default 0;
+alter table service_order_item add column unit_cost numeric not null default 0;
+alter table service_order_item add column cost_subtotal numeric not null default 0;
+alter table service_order_item add column profit numeric not null default 0;
 
 create table if not exists order_status_log (
     id integer primary key autoincrement,

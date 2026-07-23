@@ -170,4 +170,5 @@ onMounted(loadBaseData)
   font-size: 20px;
   color: #1f2937;
 }
+
 </style>

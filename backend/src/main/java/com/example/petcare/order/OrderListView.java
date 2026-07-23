@@ -12,6 +12,8 @@ public record OrderListView(
         String appointmentTime,
         String status,
         BigDecimal totalAmount,
+        BigDecimal totalCost,
+        BigDecimal totalProfit,
         String remark,
         String createdAt,
         String updatedAt
@@ -27,6 +29,8 @@ public record OrderListView(
                 order.getAppointmentTime(),
                 order.getStatus(),
                 order.getTotalAmount(),
+                order.getTotalCost(),
+                order.getTotalProfit(),
                 order.getRemark(),
                 order.getCreatedAt(),
                 order.getUpdatedAt()

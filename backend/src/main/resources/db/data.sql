@@ -18,25 +18,31 @@ from customer
 where phone = '13800000002'
   and not exists (select 1 from pet where name = '雪球');
 
-insert into service_item (name, category, price, duration_minutes, description)
-select '基础洗护', '洗护', 88.00, 60, '洗澡、吹干、基础护理'
+insert into service_item (name, category, price, cost, duration_minutes, description)
+select '基础洗护', '洗护', 88.00, 32.00, 60, '洗澡、吹干、基础护理'
 where not exists (select 1 from service_item where name = '基础洗护');
 
-insert into service_item (name, category, price, duration_minutes, description)
-select '门诊问诊', '问诊', 60.00, 30, '基础健康咨询'
+insert into service_item (name, category, price, cost, duration_minutes, description)
+select '门诊问诊', '问诊', 60.00, 18.00, 30, '基础健康咨询'
 where not exists (select 1 from service_item where name = '门诊问诊');
 
-insert into service_item (name, category, price, duration_minutes, description)
-select '精致美容', '美容', 168.00, 120, '修剪造型、洗护、基础护理'
+insert into service_item (name, category, price, cost, duration_minutes, description)
+select '精致美容', '美容', 168.00, 76.00, 120, '修剪造型、洗护、基础护理'
 where not exists (select 1 from service_item where name = '精致美容');
 
-insert into service_order (order_no, customer_id, pet_id, appointment_time, status, total_amount, remark)
+update service_item set cost = 32.00 where name = '基础洗护' and cost = 0;
+update service_item set cost = 18.00 where name = '门诊问诊' and cost = 0;
+update service_item set cost = 76.00 where name = '精致美容' and cost = 0;
+
+insert into service_order (order_no, customer_id, pet_id, appointment_time, status, total_amount, total_cost, total_profit, remark)
 select 'SO-DEMO-PENDING',
        c.id,
        p.id,
        datetime('now', '+1 day', 'localtime'),
        'PENDING',
        s.price,
+       s.cost,
+       s.price - s.cost,
        '演示待确认订单'
 from customer c
 join pet p on p.customer_id = c.id and p.name = '雪球'
@@ -44,12 +50,29 @@ join service_item s on s.name = '基础洗护'
 where c.phone = '13800000002'
   and not exists (select 1 from service_order where order_no = 'SO-DEMO-PENDING');
 
-insert into service_order_item (order_id, service_item_id, service_name, unit_price, quantity, subtotal)
-select o.id, s.id, s.name, s.price, 1, s.price
+update service_order
+set total_cost = (select s.cost from service_item s where s.name = '基础洗护'),
+    total_profit = total_amount - (select s.cost from service_item s where s.name = '基础洗护')
+where order_no = 'SO-DEMO-PENDING'
+  and total_cost = 0;
+
+insert into service_order_item (order_id, service_item_id, service_name, unit_price, unit_cost, quantity, subtotal, cost_subtotal, profit)
+select o.id, s.id, s.name, s.price, s.cost, 1, s.price, s.cost, s.price - s.cost
 from service_order o
 join service_item s on s.name = '基础洗护'
 where o.order_no = 'SO-DEMO-PENDING'
   and not exists (select 1 from service_order_item where order_id = o.id and service_item_id = s.id);
+
+update service_order_item
+set unit_cost = (select s.cost from service_item s where s.id = service_order_item.service_item_id),
+    cost_subtotal = (select s.cost from service_item s where s.id = service_order_item.service_item_id) * quantity,
+    profit = subtotal - ((select s.cost from service_item s where s.id = service_order_item.service_item_id) * quantity)
+where unit_cost = 0;
+
+update service_order
+set total_cost = coalesce((select sum(cost_subtotal) from service_order_item where order_id = service_order.id), 0),
+    total_profit = total_amount - coalesce((select sum(cost_subtotal) from service_order_item where order_id = service_order.id), 0)
+where exists (select 1 from service_order_item where order_id = service_order.id);
 
 insert into order_status_log (order_id, old_status, new_status, operator, remark)
 select o.id, null, 'PENDING', 'admin', '创建演示订单'

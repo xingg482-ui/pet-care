@@ -30,6 +30,7 @@ const form = reactive({
   name: '',
   category: '',
   price: null,
+  cost: 0,
   durationMinutes: 30,
   description: '',
 })
@@ -38,6 +39,7 @@ const rules = {
   name: [{ required: true, message: '请输入服务名称', trigger: 'blur' }],
   category: [{ required: true, message: '请输入服务分类', trigger: 'blur' }],
   price: [{ required: true, message: '请输入价格', trigger: 'change' }],
+  cost: [{ required: true, message: '请输入成本', trigger: 'change' }],
   durationMinutes: [{ required: true, message: '请输入服务时长', trigger: 'change' }],
 }
 
@@ -72,6 +74,7 @@ function resetForm() {
     name: '',
     category: '',
     price: null,
+    cost: 0,
     durationMinutes: 30,
     description: '',
   })
@@ -89,6 +92,7 @@ function openEditDialog(row) {
     name: row.name,
     category: row.category,
     price: row.price,
+    cost: row.cost ?? 0,
     durationMinutes: row.durationMinutes,
     description: row.description,
   })
@@ -102,6 +106,7 @@ async function saveItem() {
     const payload = {
       ...form,
       price: Number(form.price),
+      cost: Number(form.cost),
       durationMinutes: Number(form.durationMinutes),
     }
     if (editingId.value) {
@@ -175,6 +180,14 @@ onMounted(loadItems)
         <el-table-column prop="price" label="价格" width="110">
           <template #default="{ row }">￥{{ Number(row.price).toFixed(2) }}</template>
         </el-table-column>
+        <el-table-column prop="cost" label="成本" width="110">
+          <template #default="{ row }">￥{{ Number(row.cost || 0).toFixed(2) }}</template>
+        </el-table-column>
+        <el-table-column label="预估利润率" width="120">
+          <template #default="{ row }">
+            {{ Number(row.price) > 0 ? (((Number(row.price) - Number(row.cost || 0)) / Number(row.price)) * 100).toFixed(1) : '0.0' }}%
+          </template>
+        </el-table-column>
         <el-table-column prop="durationMinutes" label="服务时长" width="110">
           <template #default="{ row }">{{ row.durationMinutes }} 分钟</template>
         </el-table-column>
@@ -219,6 +232,9 @@ onMounted(loadItems)
         </el-form-item>
         <el-form-item label="价格" prop="price">
           <el-input-number v-model="form.price" :min="0.01" :precision="2" :step="10" />
+        </el-form-item>
+        <el-form-item label="成本" prop="cost">
+          <el-input-number v-model="form.cost" :min="0" :precision="2" :step="10" />
         </el-form-item>
         <el-form-item label="服务时长" prop="durationMinutes">
           <el-input-number v-model="form.durationMinutes" :min="1" :step="5" />

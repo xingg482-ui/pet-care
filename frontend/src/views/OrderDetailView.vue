@@ -119,7 +119,9 @@ onMounted(loadDetail)
             <el-descriptions-item label="客户">{{ detail.order.customerName }}</el-descriptions-item>
             <el-descriptions-item label="宠物">{{ detail.order.petName }}</el-descriptions-item>
             <el-descriptions-item label="预约时间">{{ detail.order.appointmentTime }}</el-descriptions-item>
-            <el-descriptions-item label="订单金额">￥{{ Number(detail.order.totalAmount).toFixed(2) }}</el-descriptions-item>
+            <el-descriptions-item label="订单收入">￥{{ Number(detail.order.totalAmount).toFixed(2) }}</el-descriptions-item>
+            <el-descriptions-item label="订单成本">￥{{ Number(detail.order.totalCost || 0).toFixed(2) }}</el-descriptions-item>
+            <el-descriptions-item label="订单利润">￥{{ Number(detail.order.totalProfit || 0).toFixed(2) }}</el-descriptions-item>
             <el-descriptions-item label="备注" :span="2">{{ detail.order.remark || '-' }}</el-descriptions-item>
           </el-descriptions>
         </el-card>
@@ -131,9 +133,18 @@ onMounted(loadDetail)
             <el-table-column prop="unitPrice" label="单价" width="120">
               <template #default="{ row }">￥{{ Number(row.unitPrice).toFixed(2) }}</template>
             </el-table-column>
+            <el-table-column prop="unitCost" label="单项成本" width="120">
+              <template #default="{ row }">￥{{ Number(row.unitCost || 0).toFixed(2) }}</template>
+            </el-table-column>
             <el-table-column prop="quantity" label="数量" width="90" />
             <el-table-column prop="subtotal" label="小计" width="120">
               <template #default="{ row }">￥{{ Number(row.subtotal).toFixed(2) }}</template>
+            </el-table-column>
+            <el-table-column prop="costSubtotal" label="成本小计" width="120">
+              <template #default="{ row }">￥{{ Number(row.costSubtotal || 0).toFixed(2) }}</template>
+            </el-table-column>
+            <el-table-column prop="profit" label="利润" width="120">
+              <template #default="{ row }">￥{{ Number(row.profit || 0).toFixed(2) }}</template>
             </el-table-column>
           </el-table>
         </el-card>

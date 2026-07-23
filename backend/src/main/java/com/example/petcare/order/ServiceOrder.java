@@ -17,6 +17,8 @@ public class ServiceOrder {
     private String appointmentTime;
     private String status;
     private BigDecimal totalAmount;
+    private BigDecimal totalCost;
+    private BigDecimal totalProfit;
     private String remark;
     private String createdAt;
     private String updatedAt;
@@ -35,6 +37,10 @@ public class ServiceOrder {
     public void setStatus(String status) { this.status = status; }
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+    public BigDecimal getTotalCost() { return totalCost; }
+    public void setTotalCost(BigDecimal totalCost) { this.totalCost = totalCost; }
+    public BigDecimal getTotalProfit() { return totalProfit; }
+    public void setTotalProfit(BigDecimal totalProfit) { this.totalProfit = totalProfit; }
     public String getRemark() { return remark; }
     public void setRemark(String remark) { this.remark = remark; }
     public String getCreatedAt() { return createdAt; }

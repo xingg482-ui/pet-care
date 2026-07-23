@@ -117,6 +117,10 @@ public class OrderService {
         BigDecimal totalAmount = serviceItems.stream()
                 .map(ServiceItem::getPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCost = serviceItems.stream()
+                .map(this::serviceCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalProfit = totalAmount.subtract(totalCost);
 
         ServiceOrder order = new ServiceOrder();
         order.setOrderNo(generateOrderNo());
@@ -125,6 +129,8 @@ public class OrderService {
         order.setAppointmentTime(format(appointmentTime));
         order.setStatus(PENDING);
         order.setTotalAmount(totalAmount);
+        order.setTotalCost(totalCost);
+        order.setTotalProfit(totalProfit);
         order.setRemark(request.remark());
         order.setCreatedAt(now());
         order.setUpdatedAt(now());
@@ -136,8 +142,11 @@ public class OrderService {
             item.setServiceItemId(serviceItem.getId());
             item.setServiceName(serviceItem.getName());
             item.setUnitPrice(serviceItem.getPrice());
+            item.setUnitCost(serviceCost(serviceItem));
             item.setQuantity(1);
             item.setSubtotal(serviceItem.getPrice());
+            item.setCostSubtotal(serviceCost(serviceItem));
+            item.setProfit(serviceItem.getPrice().subtract(serviceCost(serviceItem)));
             orderItemMapper.insert(item);
         }
         insertStatusLog(order.getId(), null, PENDING, "创建订单");
@@ -301,6 +310,10 @@ public class OrderService {
 
     private String petName(Pet pet) {
         return pet == null ? "-" : pet.getName();
+    }
+
+    private BigDecimal serviceCost(ServiceItem serviceItem) {
+        return serviceItem.getCost() == null ? BigDecimal.ZERO : serviceItem.getCost();
     }
 
     private String format(LocalDateTime time) {

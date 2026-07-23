@@ -1,6 +1,6 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
-import { Collection, Document, House, SwitchButton, Tickets, User } from '@element-plus/icons-vue'
+import { Collection, Document, House, Money, SwitchButton, Tickets, User } from '@element-plus/icons-vue'
 import { logout } from '../api/auth'
 
 const route = useRoute()
@@ -42,6 +42,10 @@ async function handleLogout() {
         <el-menu-item index="/orders/create">
           <el-icon><Document /></el-icon>
           <span>新建订单</span>
+        </el-menu-item>
+        <el-menu-item index="/finance">
+          <el-icon><Money /></el-icon>
+          <span>财务管理</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
