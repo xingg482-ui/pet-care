@@ -1,0 +1,33 @@
+:root {
+  color: #243042;
+  background: #f5f7fb;
+  font-family: Inter, "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.page-title {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.muted {
+  color: #6b7280;
+}
