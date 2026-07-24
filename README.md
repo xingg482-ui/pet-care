@@ -16,7 +16,7 @@ pet-care/
 
 - 后端：Java 21、Spring Boot 3、Maven Wrapper、MyBatis-Plus
 - 数据库：SQLite，本地数据库文件计划放在 `backend/data/dog_care.db`
-- 前端：Vue 3、Vite、JavaScript、Element Plus、Axios
+- 前端：Vue 3、Vite、JavaScript、Element Plus、Axios、ECharts
 
 ## 默认账号
 
@@ -136,4 +136,41 @@ npm run dev
 - 健康记录弹窗按疫苗、驱虫、体重三个标签页展示
 - 演示数据补充：疫苗记录、驱虫记录、体重记录
 
-阶段 0 到阶段 5 已覆盖 MVP P0 核心闭环和 P1 健康记录增强。
+已完成阶段 6：
+
+- 服务项目新增成本字段 `cost`
+- 服务项目新增/编辑表单支持录入成本
+- 服务项目列表展示成本和预估利润率
+- 订单主表新增 `total_cost`、`total_profit`
+- 订单明细新增 `unit_cost`、`cost_subtotal`、`profit`
+- 创建订单时保存价格快照和成本快照
+- 创建订单时由后端计算订单收入、成本、利润
+- 订单详情展示订单收入、订单成本、订单利润
+- 订单明细展示单项成本、成本小计、利润
+- 初始化 SQL 补充带成本的演示数据，并回填旧订单成本和利润
+
+已完成阶段 7：
+
+- 新增财务管理菜单和页面：`/finance`
+- 财务汇总接口：`GET /api/finance/summary`
+- 服务项目利润统计接口：`GET /api/finance/service-items`
+- 财务页面展示本周总营收、本周总成本、本周净利润
+- 财务页面展示本月总营收、本月总成本、本月净利润
+- 财务页面展示服务项目维度的订单数、服务次数、营收、成本、利润、利润率
+- 财务页面支持日期范围、服务分类、服务项目筛选
+- 新增财务服务测试，验证汇总和服务项目统计可正常加载
+
+已完成阶段 8：
+
+- 前端安装并接入 ECharts
+- 首页保留顶部统计卡片
+- 首页新增今日未完成预约列表
+- 首页新增最近 7 天营收、成本、利润趋势图
+- 首页新增服务项目收入占比图
+- 首页支持对“服务中”订单快捷标记完成
+- 新增首页经营看板接口：
+  - `GET /api/dashboard/revenue-trend`
+  - `GET /api/dashboard/service-revenue`
+  - `GET /api/dashboard/today-active-orders`
+
+阶段 0 到阶段 8 已覆盖 MVP P0 核心闭环、P1 健康记录增强，以及运营优化版 PRD 的阶段 6 到阶段 8 财务和经营看板能力。
