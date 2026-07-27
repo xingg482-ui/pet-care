@@ -16,8 +16,11 @@ async function handleLogout() {
 
 <template>
   <el-container class="app-shell">
-    <el-aside width="220px" class="sidebar">
-      <div class="brand">宠物订单系统</div>
+    <el-aside width="224px" class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">宠</span>
+        <span>宠物订单系统</span>
+      </div>
       <el-menu router :default-active="route.path" class="nav-menu">
         <el-menu-item index="/dashboard">
           <el-icon><House /></el-icon>
@@ -64,25 +67,73 @@ async function handleLogout() {
 <style scoped>
 .app-shell {
   min-height: 100vh;
+  background: var(--pc-bg);
 }
 
 .sidebar {
   background: #ffffff;
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid var(--pc-border);
+  box-shadow: 1px 0 0 rgba(31, 41, 51, 0.02);
 }
 
 .brand {
-  height: 56px;
+  height: 57px;
   display: flex;
   align-items: center;
-  padding: 0 20px;
-  font-size: 18px;
+  gap: 10px;
+  padding: 0 16px;
+  font-size: 15px;
   font-weight: 700;
-  border-bottom: 1px solid #e5e7eb;
+  letter-spacing: 0;
+  color: var(--pc-text);
+  border-bottom: 1px solid var(--pc-border);
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--pc-primary-hover);
+  background: var(--pc-primary-soft);
+  border: 1px solid #cfe0e4;
+  font-size: 14px;
 }
 
 .nav-menu {
   border-right: 0;
+  padding: 8px;
+  --el-menu-bg-color: transparent;
+  --el-menu-text-color: #526070;
+  --el-menu-hover-bg-color: #f4f7f9;
+  --el-menu-active-color: var(--pc-primary-hover);
+}
+
+.nav-menu :deep(.el-menu-item) {
+  height: 36px;
+  margin-bottom: 4px;
+  padding: 0 10px !important;
+  border-radius: 8px;
+  color: #526070;
+  font-size: 14px;
+  transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.nav-menu :deep(.el-menu-item:hover) {
+  background: #f4f7f9;
+  color: var(--pc-text);
+}
+
+.nav-menu :deep(.el-menu-item.is-active) {
+  background: var(--pc-primary-soft);
+  color: var(--pc-primary-hover);
+  box-shadow: inset 0 0 0 1px #cfe0e4;
+}
+
+.nav-menu :deep(.el-icon) {
+  color: inherit;
 }
 
 .topbar {
@@ -90,11 +141,15 @@ async function handleLogout() {
   align-items: center;
   justify-content: space-between;
   background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--pc-border);
+  height: 57px;
+  padding: 0 24px;
   font-weight: 600;
+  color: #3d4854;
 }
 
 .content {
-  background: #f5f7fb;
+  background: var(--pc-bg);
+  padding: 16px 24px 24px;
 }
 </style>

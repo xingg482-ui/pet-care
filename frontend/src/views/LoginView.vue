@@ -61,30 +61,36 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: linear-gradient(135deg, #eef7f2 0%, #f7f5ff 50%, #f5f7fb 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 250, 252, 0.94)),
+    repeating-linear-gradient(90deg, #f2f5f8 0, #f2f5f8 1px, transparent 1px, transparent 64px),
+    repeating-linear-gradient(0deg, #f2f5f8 0, #f2f5f8 1px, transparent 1px, transparent 64px);
 }
 
 .login-panel {
   width: min(420px, 100%);
-  padding: 32px;
+  padding: 24px;
   background: #ffffff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pc-border);
   border-radius: 8px;
-  box-shadow: 0 20px 45px rgba(31, 41, 55, 0.12);
+  box-shadow: 0 18px 44px rgba(31, 41, 51, 0.12);
 }
 
 .login-copy {
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .login-copy h1 {
   margin: 0 0 8px;
-  font-size: 28px;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 .login-copy p {
   margin: 0;
-  color: #6b7280;
+  color: var(--pc-muted);
 }
 
 .login-button {

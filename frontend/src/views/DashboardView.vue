@@ -155,7 +155,7 @@ onUnmounted(() => {
       <el-button text type="primary" :icon="Refresh" @click="loadDashboard">刷新</el-button>
     </div>
 
-    <el-row v-loading="loading" :gutter="16">
+    <el-row v-loading="loading" :gutter="16" class="summary-row">
       <el-col v-for="card in cards" :key="card.key" :xs="24" :sm="12" :md="8" :lg="4">
         <el-card shadow="never" class="summary-card">
           <div class="summary-top">
@@ -225,6 +225,19 @@ onUnmounted(() => {
   margin-bottom: 16px;
 }
 
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  column-gap: 16px;
+}
+
+.summary-row :deep(.el-col) {
+  display: block;
+  max-width: none;
+  flex: none;
+  width: 100%;
+}
+
 .summary-card,
 .section-card,
 .chart-card {
@@ -233,18 +246,27 @@ onUnmounted(() => {
 }
 
 .summary-top {
-  color: #6b7280;
+  color: var(--pc-muted);
+  font-size: 13px;
 }
 
 .summary-icon {
-  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #f5f8fa;
+  font-size: 17px;
 }
 
 .summary-value {
-  margin-top: 12px;
-  font-size: 28px;
+  margin-top: 10px;
+  font-size: 27px;
+  line-height: 34px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--pc-text);
 }
 
 .green {
@@ -270,5 +292,17 @@ onUnmounted(() => {
 .chart {
   width: 100%;
   height: 320px;
+}
+
+@media (max-width: 1180px) {
+  .summary-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .summary-row {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
