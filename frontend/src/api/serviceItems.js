@@ -19,3 +19,7 @@ export function updateServiceItem(id, data) {
 export function updateServiceItemStatus(id, status) {
   return http.put(`/service-items/${id}/status`, null, { params: { status } })
 }
+
+export function deleteServiceItem(id) {
+  return http.delete(`/service-items/${id}`)
+}

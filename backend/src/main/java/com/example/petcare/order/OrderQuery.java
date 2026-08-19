@@ -5,6 +5,7 @@ public class OrderQuery {
     private String customerName;
     private String petName;
     private String status;
+    private String paymentStatus;
     private String appointmentStart;
     private String appointmentEnd;
     private long page = 1;
@@ -18,6 +19,8 @@ public class OrderQuery {
     public void setPetName(String petName) { this.petName = petName; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
     public String getAppointmentStart() { return appointmentStart; }
     public void setAppointmentStart(String appointmentStart) { this.appointmentStart = appointmentStart; }
     public String getAppointmentEnd() { return appointmentEnd; }

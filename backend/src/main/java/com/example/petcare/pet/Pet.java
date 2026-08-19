@@ -19,6 +19,16 @@ public class Pet {
     private String birthday;
     private BigDecimal weight;
     private Boolean sterilized;
+    private String color;
+    private String microchipNo;
+    private String allergies;
+    private String medicalHistory;
+    private String dietPreference;
+    private String behaviorNotes;
+    private String exerciseLevel;
+    private String careNotes;
+    private String avatarUrl;
+    private String avatarSource;
     private String status;
     private String remark;
     private String createdAt;
@@ -94,6 +104,86 @@ public class Pet {
 
     public void setSterilized(Boolean sterilized) {
         this.sterilized = sterilized;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public String getMicrochipNo() {
+        return microchipNo;
+    }
+
+    public void setMicrochipNo(String microchipNo) {
+        this.microchipNo = microchipNo;
+    }
+
+    public String getAllergies() {
+        return allergies;
+    }
+
+    public void setAllergies(String allergies) {
+        this.allergies = allergies;
+    }
+
+    public String getMedicalHistory() {
+        return medicalHistory;
+    }
+
+    public void setMedicalHistory(String medicalHistory) {
+        this.medicalHistory = medicalHistory;
+    }
+
+    public String getDietPreference() {
+        return dietPreference;
+    }
+
+    public void setDietPreference(String dietPreference) {
+        this.dietPreference = dietPreference;
+    }
+
+    public String getBehaviorNotes() {
+        return behaviorNotes;
+    }
+
+    public void setBehaviorNotes(String behaviorNotes) {
+        this.behaviorNotes = behaviorNotes;
+    }
+
+    public String getExerciseLevel() {
+        return exerciseLevel;
+    }
+
+    public void setExerciseLevel(String exerciseLevel) {
+        this.exerciseLevel = exerciseLevel;
+    }
+
+    public String getCareNotes() {
+        return careNotes;
+    }
+
+    public void setCareNotes(String careNotes) {
+        this.careNotes = careNotes;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public String getAvatarSource() {
+        return avatarSource;
+    }
+
+    public void setAvatarSource(String avatarSource) {
+        this.avatarSource = avatarSource;
     }
 
     public String getStatus() {

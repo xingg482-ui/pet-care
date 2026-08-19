@@ -1,10 +1,12 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Refresh, Search } from '@element-plus/icons-vue'
 import AppLayout from '../components/AppLayout.vue'
+import { fetchBoardingLocations, updateBoardingLocation, updateBoardingLocationStatus } from '../api/boarding'
 import {
   createServiceItem,
+  deleteServiceItem,
   fetchServiceItems,
   updateServiceItem,
   updateServiceItemStatus,
@@ -12,10 +14,14 @@ import {
 
 const loading = ref(false)
 const dialogVisible = ref(false)
+const boardingDialogVisible = ref(false)
 const saving = ref(false)
+const boardingSaving = ref(false)
 const formRef = ref()
 const editingId = ref(null)
+const editingBoardingRow = ref(null)
 const records = ref([])
+const boardingItems = ref([])
 const total = ref(0)
 
 const query = reactive({
@@ -35,6 +41,11 @@ const form = reactive({
   description: '',
 })
 
+const boardingForm = reactive({
+  price: 0,
+  cost: 0,
+})
+
 const rules = {
   name: [{ required: true, message: '请输入服务名称', trigger: 'blur' }],
   category: [{ required: true, message: '请输入服务分类', trigger: 'blur' }],
@@ -48,6 +59,69 @@ const statusOptions = [
   { label: '停用', value: 'DISABLED' },
 ]
 
+const displayRecords = computed(() => {
+  const boardingRows = boardingServiceRows.value.filter((item) => {
+    const matchesName = !query.name || item.name.includes(query.name)
+    const matchesCategory = !query.category || item.category.includes(query.category)
+    const matchesStatus = !query.status || item.status === query.status
+    return matchesName && matchesCategory && matchesStatus
+  })
+  return [...boardingRows, ...records.value]
+})
+
+const boardingServiceRows = computed(() => {
+  const map = new Map()
+  boardingItems.value.forEach((item) => {
+    const key = [item.locationType, item.petSpecies, item.petSize, Number(item.pricePerDay || 0), Number(item.costPerDay || 0)].join('|')
+    const current = map.get(key) || {
+      id: `boarding-${key}`,
+      sourceType: 'BOARDING',
+      name: `宠物托管 - ${item.petSize}${item.petSpecies}${item.locationType}`,
+      category: '托管',
+      locationType: item.locationType,
+      petSpecies: item.petSpecies,
+      petSize: item.petSize,
+      price: Number(item.pricePerDay || 0),
+      cost: Number(item.costPerDay || 0),
+      durationMinutes: 1440,
+      status: item.status,
+      updatedAt: item.updatedAt,
+      locationCount: 0,
+      capacity: 0,
+      locations: [],
+    }
+    current.locationCount += 1
+    current.capacity += Number(item.capacity || 0)
+    current.locations.push(item)
+    if (current.status !== 'ENABLED' && item.status === 'ENABLED') {
+      current.status = 'ENABLED'
+    }
+    if (item.updatedAt && (!current.updatedAt || item.updatedAt > current.updatedAt)) {
+      current.updatedAt = item.updatedAt
+    }
+    map.set(key, current)
+  })
+  return [...map.values()].sort((left, right) => Number(right.price) - Number(left.price))
+})
+
+const displayTotal = computed(() => total.value + boardingServiceRows.value.filter((item) => {
+  const matchesName = !query.name || item.name.includes(query.name)
+  const matchesCategory = !query.category || item.category.includes(query.category)
+  const matchesStatus = !query.status || item.status === query.status
+  return matchesName && matchesCategory && matchesStatus
+}).length)
+
+function unitText(row) {
+  return row.sourceType === 'BOARDING' ? '天' : '次'
+}
+
+function serviceDurationText(row) {
+  if (row.sourceType === 'BOARDING') {
+    return '按天计费'
+  }
+  return `${row.durationMinutes} 分钟`
+}
+
 async function loadItems() {
   loading.value = true
   try {
@@ -59,6 +133,11 @@ async function loadItems() {
   } finally {
     loading.value = false
   }
+}
+
+async function loadBoardingItems() {
+  const result = await fetchBoardingLocations({ page: 1, pageSize: 100 })
+  boardingItems.value = result.records
 }
 
 function resetQuery() {
@@ -87,6 +166,10 @@ function openCreateDialog() {
 }
 
 function openEditDialog(row) {
+  if (row.sourceType === 'BOARDING') {
+    openBoardingDialog(row)
+    return
+  }
   editingId.value = row.id
   Object.assign(form, {
     name: row.name,
@@ -97,6 +180,15 @@ function openEditDialog(row) {
     description: row.description,
   })
   dialogVisible.value = true
+}
+
+function openBoardingDialog(row) {
+  editingBoardingRow.value = row
+  Object.assign(boardingForm, {
+    price: Number(row.price || 0),
+    cost: Number(row.cost || 0),
+  })
+  boardingDialogVisible.value = true
 }
 
 async function saveItem() {
@@ -124,11 +216,69 @@ async function saveItem() {
 }
 
 async function toggleStatus(row) {
+  if (row.sourceType === 'BOARDING') {
+    await toggleBoardingStatus(row)
+    return
+  }
   const nextStatus = row.status === 'ENABLED' ? 'DISABLED' : 'ENABLED'
   const actionText = nextStatus === 'ENABLED' ? '启用' : '停用'
   await ElMessageBox.confirm(`确定${actionText}服务项目「${row.name}」吗？`, '确认操作', { type: 'warning' })
   await updateServiceItemStatus(row.id, nextStatus)
   ElMessage.success(`服务项目已${actionText}`)
+  loadItems()
+}
+
+async function saveBoardingService() {
+  if (!editingBoardingRow.value) {
+    return
+  }
+  boardingSaving.value = true
+  try {
+    await Promise.all(editingBoardingRow.value.locations.map((location) => updateBoardingLocation(location.id, {
+      areaId: location.areaId,
+      code: location.code,
+      name: location.name,
+      locationType: location.locationType,
+      petSpecies: location.petSpecies,
+      petSize: location.petSize,
+      capacity: location.capacity,
+      pricePerDay: Number(boardingForm.price || 0),
+      costPerDay: Number(boardingForm.cost || 0),
+      remark: location.remark,
+    })))
+    ElMessage.success('托管服务价格已更新')
+    boardingDialogVisible.value = false
+    await loadBoardingItems()
+  } finally {
+    boardingSaving.value = false
+  }
+}
+
+async function toggleBoardingStatus(row) {
+  const nextStatus = row.status === 'ENABLED' ? 'DISABLED' : 'ENABLED'
+  const actionText = nextStatus === 'ENABLED' ? '启用' : '停用'
+  await ElMessageBox.confirm(`确定${actionText}托管服务「${row.name}」吗？会同步更新该房型下 ${row.locationCount} 个托管位置。`, '确认操作', { type: 'warning' })
+  await Promise.all(row.locations.map((location) => updateBoardingLocationStatus(location.id, nextStatus)))
+  ElMessage.success(`托管服务已${actionText}`)
+  await loadBoardingItems()
+}
+
+async function removeItem(row) {
+  if (row.sourceType === 'BOARDING') {
+    ElMessage.info('托管服务对应托管位置，请在托管管理中维护')
+    return
+  }
+  if (row.status !== 'DISABLED') {
+    ElMessage.warning('请先停用服务项目后再删除')
+    return
+  }
+  await ElMessageBox.confirm(`确定删除已停用服务项目「${row.name}」吗？删除后不可恢复。`, '删除服务项目', {
+    type: 'warning',
+    confirmButtonText: '删除',
+    cancelButtonText: '取消',
+  })
+  await deleteServiceItem(row.id)
+  ElMessage.success('服务项目已删除')
   loadItems()
 }
 
@@ -143,7 +293,10 @@ function handlePageSizeChange(pageSize) {
   loadItems()
 }
 
-onMounted(loadItems)
+onMounted(() => {
+  loadItems()
+  loadBoardingItems()
+})
 </script>
 
 <template>
@@ -159,7 +312,7 @@ onMounted(loadItems)
           <el-input v-model="query.name" placeholder="请输入名称" clearable />
         </el-form-item>
         <el-form-item label="服务分类">
-          <el-input v-model="query.category" placeholder="如洗护、问诊" clearable />
+          <el-input v-model="query.category" placeholder="如洗护、美容、护理" clearable />
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="query.status" placeholder="全部状态" clearable class="status-select">
@@ -174,14 +327,14 @@ onMounted(loadItems)
     </el-card>
 
     <el-card shadow="never" class="table-panel">
-      <el-table v-loading="loading" :data="records" border>
+      <el-table v-loading="loading" :data="displayRecords" border>
         <el-table-column prop="name" label="服务名称" min-width="150" />
         <el-table-column prop="category" label="分类" width="120" />
         <el-table-column prop="price" label="价格" width="110">
-          <template #default="{ row }">￥{{ Number(row.price).toFixed(2) }}</template>
+          <template #default="{ row }">￥{{ Number(row.price).toFixed(2) }} / {{ unitText(row) }}</template>
         </el-table-column>
         <el-table-column prop="cost" label="成本" width="110">
-          <template #default="{ row }">￥{{ Number(row.cost || 0).toFixed(2) }}</template>
+          <template #default="{ row }">￥{{ Number(row.cost || 0).toFixed(2) }} / {{ unitText(row) }}</template>
         </el-table-column>
         <el-table-column label="预估利润率" width="120">
           <template #default="{ row }">
@@ -189,7 +342,7 @@ onMounted(loadItems)
           </template>
         </el-table-column>
         <el-table-column prop="durationMinutes" label="服务时长" width="110">
-          <template #default="{ row }">{{ row.durationMinutes }} 分钟</template>
+          <template #default="{ row }">{{ serviceDurationText(row) }}</template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="90">
           <template #default="{ row }">
@@ -205,6 +358,7 @@ onMounted(loadItems)
             <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'" @click="toggleStatus(row)">
               {{ row.status === 'ENABLED' ? '停用' : '启用' }}
             </el-button>
+            <el-button v-if="row.status === 'DISABLED' && row.sourceType !== 'BOARDING'" link type="danger" @click="removeItem(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -212,7 +366,7 @@ onMounted(loadItems)
         <el-pagination
           background
           layout="total, sizes, prev, pager, next"
-          :total="total"
+          :total="displayTotal"
           :current-page="query.page"
           :page-size="query.pageSize"
           :page-sizes="[10, 20, 50]"
@@ -228,7 +382,7 @@ onMounted(loadItems)
           <el-input v-model="form.name" maxlength="100" show-word-limit />
         </el-form-item>
         <el-form-item label="服务分类" prop="category">
-          <el-input v-model="form.category" maxlength="50" placeholder="如洗护、问诊、寄养" />
+          <el-input v-model="form.category" maxlength="50" placeholder="如洗护、美容、护理" />
         </el-form-item>
         <el-form-item label="价格" prop="price">
           <el-input-number v-model="form.price" :min="0.01" :precision="2" :step="10" />
@@ -247,6 +401,29 @@ onMounted(loadItems)
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="saveItem">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="boardingDialogVisible" title="编辑托管服务" width="520px">
+      <el-form :model="boardingForm" label-width="96px">
+        <el-form-item label="服务名称">
+          <el-input :model-value="editingBoardingRow?.name || ''" disabled />
+        </el-form-item>
+        <el-form-item label="每日价格">
+          <el-input-number v-model="boardingForm.price" :min="0.01" :precision="2" :step="10" />
+          <span class="form-suffix">元 / 天</span>
+        </el-form-item>
+        <el-form-item label="每日成本">
+          <el-input-number v-model="boardingForm.cost" :min="0" :precision="2" :step="10" />
+          <span class="form-suffix">元 / 天</span>
+        </el-form-item>
+        <el-form-item label="同步范围">
+          <span class="form-muted">{{ editingBoardingRow?.locationCount || 0 }} 个托管位置，容量 {{ editingBoardingRow?.capacity || 0 }}</span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="boardingDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="boardingSaving" @click="saveBoardingService">保存</el-button>
       </template>
     </el-dialog>
   </AppLayout>
@@ -276,6 +453,10 @@ onMounted(loadItems)
 .form-suffix {
   margin-left: 8px;
   color: #6b7280;
+}
+
+.form-muted {
+  color: #64748b;
 }
 
 .pagination-bar {

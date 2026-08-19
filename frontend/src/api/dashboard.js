@@ -15,3 +15,7 @@ export function fetchDashboardServiceRevenue() {
 export function fetchDashboardTodayActiveOrders() {
   return http.get('/dashboard/today-active-orders')
 }
+
+export function fetchDashboardTodayTasks() {
+  return http.get('/dashboard/today-tasks')
+}

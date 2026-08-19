@@ -2,6 +2,9 @@ backend/target/
 backend/data/
 !backend/data/
 !backend/data/.gitkeep
+backend/boot-libs/
+backend/backend-classpath.args
+backend/uploads/
 frontend/node_modules/
 frontend/dist/
 .idea/

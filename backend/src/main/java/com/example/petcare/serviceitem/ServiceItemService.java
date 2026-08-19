@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.petcare.common.PageResult;
+import com.example.petcare.order.ServiceOrderItem;
+import com.example.petcare.order.ServiceOrderItemMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -18,9 +20,11 @@ public class ServiceItemService {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final ServiceItemMapper serviceItemMapper;
+    private final ServiceOrderItemMapper serviceOrderItemMapper;
 
-    public ServiceItemService(ServiceItemMapper serviceItemMapper) {
+    public ServiceItemService(ServiceItemMapper serviceItemMapper, ServiceOrderItemMapper serviceOrderItemMapper) {
         this.serviceItemMapper = serviceItemMapper;
+        this.serviceOrderItemMapper = serviceOrderItemMapper;
     }
 
     public PageResult<ServiceItem> list(ServiceItemQuery query) {
@@ -76,6 +80,19 @@ public class ServiceItemService {
                 .set(ServiceItem::getStatus, status)
                 .set(ServiceItem::getUpdatedAt, now()));
         return getByIdOrThrow(id);
+    }
+
+    public void delete(Long id) {
+        ServiceItem item = getByIdOrThrow(id);
+        if (!DISABLED.equals(item.getStatus())) {
+            throw new IllegalArgumentException("只有已停用的服务项目可以删除");
+        }
+        Long usedCount = serviceOrderItemMapper.selectCount(new LambdaQueryWrapper<ServiceOrderItem>()
+                .eq(ServiceOrderItem::getServiceItemId, id));
+        if (usedCount != null && usedCount > 0) {
+            throw new IllegalArgumentException("该服务项目已有订单记录，不能删除");
+        }
+        serviceItemMapper.deleteById(id);
     }
 
     private void applyRequest(ServiceItem item, ServiceItemRequest request) {

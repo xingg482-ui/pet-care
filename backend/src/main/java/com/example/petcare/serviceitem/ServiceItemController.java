@@ -3,6 +3,7 @@ package com.example.petcare.serviceitem;
 import com.example.petcare.common.ApiResponse;
 import com.example.petcare.common.PageResult;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,5 +51,11 @@ public class ServiceItemController {
     @PutMapping("/{id}/status")
     public ApiResponse<ServiceItem> updateStatus(@PathVariable Long id, @RequestParam String status) {
         return ApiResponse.success(serviceItemService.updateStatus(id, status));
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        serviceItemService.delete(id);
+        return ApiResponse.success(null);
     }
 }

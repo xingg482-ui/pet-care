@@ -19,6 +19,11 @@ public class ServiceOrder {
     private BigDecimal totalAmount;
     private BigDecimal totalCost;
     private BigDecimal totalProfit;
+    private String paymentStatus;
+    private BigDecimal paidAmount;
+    private String paidAt;
+    private String paymentMethod;
+    private String paymentNo;
     private String remark;
     private String createdAt;
     private String updatedAt;
@@ -41,6 +46,16 @@ public class ServiceOrder {
     public void setTotalCost(BigDecimal totalCost) { this.totalCost = totalCost; }
     public BigDecimal getTotalProfit() { return totalProfit; }
     public void setTotalProfit(BigDecimal totalProfit) { this.totalProfit = totalProfit; }
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+    public BigDecimal getPaidAmount() { return paidAmount; }
+    public void setPaidAmount(BigDecimal paidAmount) { this.paidAmount = paidAmount; }
+    public String getPaidAt() { return paidAt; }
+    public void setPaidAt(String paidAt) { this.paidAt = paidAt; }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public String getPaymentNo() { return paymentNo; }
+    public void setPaymentNo(String paymentNo) { this.paymentNo = paymentNo; }
     public String getRemark() { return remark; }
     public void setRemark(String remark) { this.remark = remark; }
     public String getCreatedAt() { return createdAt; }

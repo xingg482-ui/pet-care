@@ -15,3 +15,7 @@ export function updateCustomer(id, data) {
 export function updateCustomerStatus(id, status) {
   return http.put(`/customers/${id}/status`, null, { params: { status } })
 }
+
+export function deleteCustomer(id) {
+  return http.delete(`/customers/${id}`)
+}

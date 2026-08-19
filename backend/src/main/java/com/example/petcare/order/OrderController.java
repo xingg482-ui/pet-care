@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,6 +42,15 @@ public class OrderController {
     @PutMapping("/{id}/status")
     public ApiResponse<OrderDetailView> updateStatus(@PathVariable Long id, @Valid @RequestBody OrderStatusRequest request) {
         return ApiResponse.success(orderService.updateStatus(id, request));
+    }
+
+    @PostMapping("/{id}/payment-confirm")
+    public ApiResponse<OrderPayResult> confirmPayment(
+            @PathVariable Long id,
+            @RequestBody(required = false) OrderPayRequest request,
+            @RequestHeader(name = "Authorization", required = false) String authorization
+    ) {
+        return ApiResponse.success(orderService.confirmPayment(id, request, authorization));
     }
 
     @PutMapping("/{id}/appointment-time")

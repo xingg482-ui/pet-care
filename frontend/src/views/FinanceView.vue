@@ -7,8 +7,8 @@ import { fetchServiceItems } from '../api/serviceItems'
 
 const loading = ref(false)
 const summary = ref({
-  week: { revenue: 0, cost: 0, profit: 0, profitRate: 0 },
-  month: { revenue: 0, cost: 0, profit: 0, profitRate: 0 },
+  week: { receivableAmount: 0, receivedAmount: 0, pendingAmount: 0, revenue: 0, cost: 0, profit: 0, profitRate: 0 },
+  month: { receivableAmount: 0, receivedAmount: 0, pendingAmount: 0, revenue: 0, cost: 0, profit: 0, profitRate: 0 },
 })
 const serviceStats = ref([])
 const serviceItems = ref([])
@@ -19,7 +19,7 @@ const query = reactive({
   serviceItemId: '',
 })
 
-const categoryOptions = computed(() => [...new Set(serviceItems.value.map((item) => item.category).filter(Boolean))])
+const categoryOptions = computed(() => [...new Set([...serviceItems.value.map((item) => item.category).filter(Boolean), '托管'])])
 
 const metricCards = computed(() => [
   { title: '本周总营收', value: summary.value.week.revenue, icon: Money, tone: 'revenue' },
@@ -30,8 +30,30 @@ const metricCards = computed(() => [
   { title: '本月净利润', value: summary.value.month.profit, icon: TrendCharts, tone: 'profit', rate: summary.value.month.profitRate },
 ])
 
+const serviceStatsPeriodText = computed(() => {
+  const [startDate, endDate] = query.dateRange || []
+  if (startDate || endDate) {
+    return `${startDate || '不限开始'} 至 ${endDate || '不限结束'}`
+  }
+  return `${monthStartText()} 至 ${todayText()}`
+})
+
 function money(value) {
   return `￥${Number(value || 0).toFixed(2)}`
+}
+
+function formatDate(date) {
+  const pad = (value) => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
+
+function monthStartText() {
+  const date = new Date()
+  return formatDate(new Date(date.getFullYear(), date.getMonth(), 1))
+}
+
+function todayText() {
+  return formatDate(new Date())
 }
 
 function buildParams() {
@@ -92,7 +114,7 @@ onMounted(async () => {
           <div :class="['metric-value', card.tone]">{{ money(card.value) }}</div>
           <div class="muted">
             <span v-if="card.rate !== undefined">利润率 {{ Number(card.rate || 0).toFixed(2) }}%</span>
-            <span v-else>按订单创建时间统计</span>
+            <span v-else>按已支付订单统计</span>
           </div>
         </el-card>
       </el-col>
@@ -131,7 +153,7 @@ onMounted(async () => {
       <template #header>
         <div class="card-header">
           <span>服务项目利润表</span>
-          <span class="muted">收入、成本、利润均来自订单明细快照</span>
+          <span class="muted">参考数据时间：{{ serviceStatsPeriodText }}；收入、成本、利润仅来自已支付订单明细快照</span>
         </div>
       </template>
       <el-table v-loading="loading" :data="serviceStats" border empty-text="暂无财务数据">
@@ -179,33 +201,50 @@ onMounted(async () => {
 
 .metric-card {
   margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: "";
+  display: block;
+  height: 3px;
+  background: #dbe6e8;
 }
 
 .metric-top {
-  color: #6b7280;
+  color: var(--pc-muted);
+  font-size: 13px;
 }
 
 .metric-icon {
-  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--pc-surface-soft);
+  font-size: 17px;
 }
 
 .metric-value {
-  margin: 12px 0 6px;
-  font-size: 28px;
+  margin: 10px 0 6px;
+  font-size: 27px;
+  line-height: 34px;
   font-weight: 700;
 }
 
 .revenue {
-  color: #0f766e;
+  color: #235d64;
 }
 
 .cost {
-  color: #b45309;
+  color: #8a6426;
 }
 
 .profit,
 .profit-text {
-  color: #2563eb;
+  color: #4f6f9f;
 }
 
 .filter-panel {

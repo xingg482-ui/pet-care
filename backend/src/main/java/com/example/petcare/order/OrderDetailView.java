@@ -10,6 +10,7 @@ public record OrderDetailView(
         Customer customer,
         Pet pet,
         List<ServiceOrderItem> items,
+        List<PaymentRecord> paymentRecords,
         List<OrderStatusLog> statusLogs
 ) {
 }

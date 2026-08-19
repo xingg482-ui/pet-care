@@ -3,7 +3,15 @@ package com.example.petcare.customer;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.petcare.account.Account;
+import com.example.petcare.account.AccountMapper;
+import com.example.petcare.boarding.BoardingOrder;
+import com.example.petcare.boarding.BoardingOrderMapper;
 import com.example.petcare.common.PageResult;
+import com.example.petcare.order.ServiceOrder;
+import com.example.petcare.order.ServiceOrderMapper;
+import com.example.petcare.pet.Pet;
+import com.example.petcare.pet.PetMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -18,9 +26,22 @@ public class CustomerService {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final CustomerMapper customerMapper;
+    private final AccountMapper accountMapper;
+    private final PetMapper petMapper;
+    private final ServiceOrderMapper orderMapper;
+    private final BoardingOrderMapper boardingOrderMapper;
 
-    public CustomerService(CustomerMapper customerMapper) {
+    public CustomerService(
+            CustomerMapper customerMapper,
+            AccountMapper accountMapper,
+            PetMapper petMapper,
+            ServiceOrderMapper orderMapper,
+            BoardingOrderMapper boardingOrderMapper) {
         this.customerMapper = customerMapper;
+        this.accountMapper = accountMapper;
+        this.petMapper = petMapper;
+        this.orderMapper = orderMapper;
+        this.boardingOrderMapper = boardingOrderMapper;
     }
 
     public PageResult<Customer> list(CustomerQuery query) {
@@ -42,7 +63,7 @@ public class CustomerService {
     }
 
     public Customer create(CustomerRequest request) {
-        ensurePhoneUnique(request.phone(), null);
+        ensurePhoneUnique(trimToNull(request.phone()), null);
         Customer customer = new Customer();
         applyRequest(customer, request);
         customer.setStatus(ENABLED);
@@ -54,7 +75,7 @@ public class CustomerService {
 
     public Customer update(Long id, CustomerRequest request) {
         Customer customer = getByIdOrThrow(id);
-        ensurePhoneUnique(request.phone(), id);
+        ensurePhoneUnique(trimToNull(request.phone()), id);
         applyRequest(customer, request);
         customer.setUpdatedAt(now());
         customerMapper.updateById(customer);
@@ -73,7 +94,34 @@ public class CustomerService {
         return getByIdOrThrow(id);
     }
 
+    public void delete(Long id) {
+        Customer customer = getByIdOrThrow(id);
+        if (!DISABLED.equals(customer.getStatus())) {
+            throw new IllegalArgumentException("请先停用客户后再删除");
+        }
+        ensureNoRelatedData(id);
+        customerMapper.deleteById(id);
+    }
+
+    private void ensureNoRelatedData(Long id) {
+        if (accountMapper.selectCount(new LambdaQueryWrapper<Account>().eq(Account::getCustomerId, id)) > 0) {
+            throw new IllegalArgumentException("客户已关联登录账号，无法删除");
+        }
+        if (petMapper.selectCount(new LambdaQueryWrapper<Pet>().eq(Pet::getCustomerId, id)) > 0) {
+            throw new IllegalArgumentException("客户已关联宠物，无法删除");
+        }
+        if (orderMapper.selectCount(new LambdaQueryWrapper<ServiceOrder>().eq(ServiceOrder::getCustomerId, id)) > 0) {
+            throw new IllegalArgumentException("客户已关联订单，无法删除");
+        }
+        if (boardingOrderMapper.selectCount(new LambdaQueryWrapper<BoardingOrder>().eq(BoardingOrder::getCustomerId, id)) > 0) {
+            throw new IllegalArgumentException("客户已关联寄养订单，无法删除");
+        }
+    }
+
     private void ensurePhoneUnique(String phone, Long currentId) {
+        if (!StringUtils.hasText(phone)) {
+            return;
+        }
         LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<Customer>()
                 .eq(Customer::getPhone, phone)
                 .ne(currentId != null, Customer::getId, currentId);
@@ -83,11 +131,15 @@ public class CustomerService {
     }
 
     private void applyRequest(Customer customer, CustomerRequest request) {
-        customer.setName(request.name());
-        customer.setPhone(request.phone());
-        customer.setEmail(request.email());
-        customer.setAddress(request.address());
-        customer.setRemark(request.remark());
+        customer.setName(request.name().trim());
+        customer.setPhone(trimToNull(request.phone()));
+        customer.setEmail(trimToNull(request.email()));
+        customer.setAddress(trimToNull(request.address()));
+        customer.setRemark(trimToNull(request.remark()));
+    }
+
+    private String trimToNull(String value) {
+        return StringUtils.hasText(value) ? value.trim() : null;
     }
 
     private String now() {

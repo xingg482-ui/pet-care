@@ -16,6 +16,14 @@ public record PetRequest(
         String birthday,
         @DecimalMin(value = "0.0", inclusive = false, message = "必须大于0") BigDecimal weight,
         Boolean sterilized,
+        @Size(max = 50, message = "不能超过50个字符") String color,
+        @Size(max = 80, message = "不能超过80个字符") String microchipNo,
+        @Size(max = 500, message = "不能超过500个字符") String allergies,
+        @Size(max = 500, message = "不能超过500个字符") String medicalHistory,
+        @Size(max = 500, message = "不能超过500个字符") String dietPreference,
+        @Size(max = 500, message = "不能超过500个字符") String behaviorNotes,
+        @Size(max = 50, message = "不能超过50个字符") String exerciseLevel,
+        @Size(max = 500, message = "不能超过500个字符") String careNotes,
         @Size(max = 500, message = "不能超过500个字符") String remark
 ) {
 }

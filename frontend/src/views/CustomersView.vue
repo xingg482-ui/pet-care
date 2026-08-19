@@ -3,7 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Refresh, Search } from '@element-plus/icons-vue'
 import AppLayout from '../components/AppLayout.vue'
-import { createCustomer, fetchCustomers, updateCustomer, updateCustomerStatus } from '../api/customers'
+import { createCustomer, deleteCustomer, fetchCustomers, updateCustomer, updateCustomerStatus } from '../api/customers'
 
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -31,7 +31,6 @@ const form = reactive({
 
 const rules = {
   name: [{ required: true, message: '请输入客户姓名', trigger: 'blur' }],
-  phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
 }
 
 const statusOptions = [
@@ -105,6 +104,13 @@ async function toggleStatus(row) {
   loadCustomers()
 }
 
+async function handleDelete(row) {
+  await ElMessageBox.confirm(`确定删除停用客户「${row.name}」吗？删除后不可恢复。`, '删除客户', { type: 'warning' })
+  await deleteCustomer(row.id)
+  ElMessage.success('客户已删除')
+  loadCustomers()
+}
+
 function handlePageChange(page) {
   query.page = page
   loadCustomers()
@@ -117,6 +123,10 @@ function handlePageSizeChange(pageSize) {
 }
 
 onMounted(loadCustomers)
+
+function displayValue(value) {
+  return value === null || value === undefined || value === '' ? '-' : value
+}
 </script>
 
 <template>
@@ -149,8 +159,12 @@ onMounted(loadCustomers)
     <el-card shadow="never" class="table-panel">
       <el-table v-loading="loading" :data="records" border>
         <el-table-column prop="name" label="客户姓名" min-width="120" />
-        <el-table-column prop="phone" label="手机号" min-width="140" />
-        <el-table-column prop="email" label="邮箱" min-width="180" show-overflow-tooltip />
+        <el-table-column label="手机号" min-width="140">
+          <template #default="{ row }">{{ displayValue(row.phone) }}</template>
+        </el-table-column>
+        <el-table-column label="邮箱" min-width="180" show-overflow-tooltip>
+          <template #default="{ row }">{{ displayValue(row.email) }}</template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="90">
           <template #default="{ row }">
             <el-tag :type="row.status === 'ENABLED' ? 'success' : 'info'">
@@ -158,13 +172,16 @@ onMounted(loadCustomers)
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" min-width="170" />
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="创建时间" min-width="170">
+          <template #default="{ row }">{{ displayValue(row.createdAt) }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
             <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'" @click="toggleStatus(row)">
               {{ row.status === 'ENABLED' ? '停用' : '启用' }}
             </el-button>
+            <el-button v-if="row.status === 'DISABLED'" link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

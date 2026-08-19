@@ -3,7 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AppLayout from '../components/AppLayout.vue'
-import { fetchOrder, updateAppointmentTime, updateOrderStatus } from '../api/orders'
+import { fetchMyOrder, fetchOrder, updateAppointmentTime, updateOrderStatus } from '../api/orders'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,6 +12,8 @@ const saving = ref(false)
 const detail = ref(null)
 const appointmentDialogVisible = ref(false)
 const appointmentForm = reactive({ appointmentTime: '' })
+const isCustomerView = computed(() => route.path.startsWith('/my-orders'))
+const listPath = computed(() => (isCustomerView.value ? '/my-orders' : '/orders'))
 
 const statusOptions = [
   { label: '待确认', value: 'PENDING' },
@@ -23,6 +25,24 @@ const statusOptions = [
 ]
 
 const statusText = Object.fromEntries(statusOptions.map((item) => [item.value, item.label]))
+
+const paymentStatusText = {
+  UNPAID: '未支付',
+  PAID: '已支付',
+}
+
+const paymentStatusTypes = {
+  UNPAID: 'warning',
+  PAID: 'success',
+}
+
+function paymentMethodText(value) {
+  const methods = {
+    MOCK: '模拟支付',
+    MANUAL: '人工确认',
+  }
+  return methods[value] || value || '-'
+}
 
 const actions = {
   PENDING: [
@@ -37,7 +57,7 @@ const actions = {
   IN_SERVICE: [{ label: '完成服务', status: 'COMPLETED' }],
 }
 
-const canEditAppointment = computed(() => ['PENDING', 'CONFIRMED'].includes(detail.value?.order?.status))
+const canEditAppointment = computed(() => !isCustomerView.value && ['PENDING', 'CONFIRMED'].includes(detail.value?.order?.status))
 
 function formatDateTime(value) {
   if (!value) {
@@ -51,7 +71,7 @@ function formatDateTime(value) {
 async function loadDetail() {
   loading.value = true
   try {
-    detail.value = await fetchOrder(route.params.id)
+    detail.value = isCustomerView.value ? await fetchMyOrder(route.params.id) : await fetchOrder(route.params.id)
   } finally {
     loading.value = false
   }
@@ -90,7 +110,7 @@ onMounted(loadDetail)
   <AppLayout>
     <div class="page-header">
       <h1 class="page-title">订单详情</h1>
-      <el-button @click="router.push('/orders')">返回列表</el-button>
+      <el-button @click="router.push(listPath)">返回列表</el-button>
     </div>
 
     <div v-loading="loading">
@@ -102,7 +122,7 @@ onMounted(loadDetail)
               <div>
                 <el-button v-if="canEditAppointment" link type="primary" @click="openAppointmentDialog">修改预约时间</el-button>
                 <el-button
-                  v-for="action in actions[detail.order.status] || []"
+                  v-for="action in isCustomerView ? [] : actions[detail.order.status] || []"
                   :key="action.status"
                   link
                   type="primary"
@@ -124,6 +144,31 @@ onMounted(loadDetail)
             <el-descriptions-item label="订单利润">￥{{ Number(detail.order.totalProfit || 0).toFixed(2) }}</el-descriptions-item>
             <el-descriptions-item label="备注" :span="2">{{ detail.order.remark || '-' }}</el-descriptions-item>
           </el-descriptions>
+        </el-card>
+
+        <el-card shadow="never" class="section-card">
+          <template #header>支付信息</template>
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="支付状态">
+              <el-tag :type="paymentStatusTypes[detail.order.paymentStatus || 'UNPAID']">
+                {{ paymentStatusText[detail.order.paymentStatus || 'UNPAID'] || detail.order.paymentStatus }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="支付金额">￥{{ Number(detail.order.paidAmount || 0).toFixed(2) }}</el-descriptions-item>
+            <el-descriptions-item label="支付方式">{{ paymentMethodText(detail.order.paymentMethod) }}</el-descriptions-item>
+            <el-descriptions-item label="支付流水号">{{ detail.order.paymentNo || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="支付时间" :span="2">{{ detail.order.paidAt || '-' }}</el-descriptions-item>
+          </el-descriptions>
+          <el-table :data="detail.paymentRecords || []" border class="payment-record-table" empty-text="暂无支付记录">
+            <el-table-column prop="paymentNo" label="支付流水号" min-width="180" />
+            <el-table-column prop="paymentMethod" label="支付方式" width="120">
+              <template #default="{ row }">{{ paymentMethodText(row.paymentMethod) }}</template>
+            </el-table-column>
+            <el-table-column prop="amount" label="支付金额" width="120">
+              <template #default="{ row }">￥{{ Number(row.amount || 0).toFixed(2) }}</template>
+            </el-table-column>
+            <el-table-column prop="paidAt" label="支付时间" min-width="170" />
+          </el-table>
         </el-card>
 
         <el-card shadow="never" class="section-card">
@@ -191,6 +236,10 @@ onMounted(loadDetail)
 .section-card {
   margin-bottom: 16px;
   border-radius: 8px;
+}
+
+.payment-record-table {
+  margin-top: 12px;
 }
 
 .full-width {

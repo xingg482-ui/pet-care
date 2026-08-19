@@ -41,4 +41,9 @@ public class DashboardController {
     public ApiResponse<List<DashboardTodayActiveOrder>> todayActiveOrders() {
         return ApiResponse.success(dashboardService.todayActiveOrders());
     }
+
+    @GetMapping("/today-tasks")
+    public ApiResponse<List<DashboardTodayTask>> todayTasks() {
+        return ApiResponse.success(dashboardService.todayTasks());
+    }
 }

@@ -5,6 +5,7 @@ public record DashboardSummary(
         long petCount,
         long serviceItemCount,
         long pendingOrderCount,
-        long todayAppointmentCount
+        long todayAppointmentCount,
+        long boardingAvailableLocationCount
 ) {
 }
